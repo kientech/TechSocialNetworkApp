@@ -4,8 +4,11 @@ import ScreenWrapper from "../components/ScreenWrapper";
 import { hp, wp } from "../helpers/common";
 import { theme } from "../constants/theme";
 import Button from "../components/Button";
+import { useRouter } from "expo-router";
+import { TouchableOpacity } from "react-native";
 
 const Welcome = () => {
+  const router = useRouter();
   return (
     <ScreenWrapper bg="white">
       <StatusBar styles={"dark"} />
@@ -28,7 +31,16 @@ const Welcome = () => {
 
         {/* footer */}
         <View style={styles.footer}>
-          <Button title="Getting Started" />
+          <Button
+            title="Getting Started"
+            onPress={() => router.push("signup")}
+          />
+          <View style={styles.toLoginContainer}>
+            <Text style={styles.already}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.push("login")}>
+              <Text style={{ color: theme.colors.primary, fontSize: wp(4.5), fontWeight: 'bold' }}>Login</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </ScreenWrapper>
@@ -66,4 +78,13 @@ const styles = StyleSheet.create({
     width: "100%",
     gap: 20,
   },
+  toLoginContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  already: {
+    fontSize: wp(3.8)
+  }
 });
