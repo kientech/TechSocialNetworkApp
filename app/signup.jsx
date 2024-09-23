@@ -7,17 +7,20 @@ import { hp, wp } from "../helpers/common";
 import { theme } from "../constants/theme";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import { supabase } from "../lib/supabase";
 
 const SignUp = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  console.log("🚀 ~ Login ~ email:", email);
   const [password, setPassword] = useState("");
-  console.log("🚀 ~ Login ~ password:", password);
   const [error, setError] = useState("");
 
-  const handleLogin = () => {
+  const handleSignUp = async () => {
+    if (!name) {
+      setError("Name is required");
+      return;
+    }
     if (!email) {
       setError("Email is required");
       return;
@@ -27,9 +30,15 @@ const SignUp = () => {
       return;
     }
 
-    // Add any additional validation logic (e.g., email format, password strength)
-    Alert.alert("Login successful", `Welcome back, ${email}!`);
-    // Redirect or further login logic here
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+    });
+    Alert.alert("Sign Up Successful");
+    router.push("login");
   };
 
   const handleRecoverPassword = () => {
@@ -73,7 +82,7 @@ const SignUp = () => {
             />
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
           </View>
-          <Button title="Sign up" onPress={handleLogin} />
+          <Button title="Sign up" onPress={handleSignUp} />
           <View style={styles.signupContainer}>
             <Text style={styles.dontHave}>Alerady have an account? </Text>
             <TouchableOpacity onPress={handleCreateAccount}>
