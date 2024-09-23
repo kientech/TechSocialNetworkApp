@@ -43,7 +43,6 @@ const Login = () => {
       }
 
       Alert.alert("Login successful", `Welcome back, ${email}!`);
-      router.push("index");
     } catch (err) {
       setError(err.message);
     } finally {

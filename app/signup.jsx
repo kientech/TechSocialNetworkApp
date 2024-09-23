@@ -46,15 +46,18 @@ const SignUp = () => {
     } = await supabase.auth.signUp({
       email: email,
       password: password,
+      options: {
+        data: {
+          name,
+        },
+      },
     });
 
     setLoading(false);
     if (error) {
       Alert.alert("Error", error.message || "An error occurred during signup.");
     } else {
-      Alert.alert("Success", "Sign Up Successfully", [
-        { text: "OK", onPress: () => router.push("login") },
-      ]);
+      Alert.alert("Success", "Sign Up Successfully");
     }
   };
 
