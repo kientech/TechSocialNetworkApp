@@ -7,28 +7,48 @@ import { hp, wp } from "../helpers/common";
 import { theme } from "../constants/theme";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import { supabase } from "../lib/supabase";
 
 const Login = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  console.log("🚀 ~ Login ~ email:", email);
   const [password, setPassword] = useState("");
-  console.log("🚀 ~ Login ~ password:", password);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Loading state
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    setError("");
+
     if (!email) {
       setError("Email is required");
       return;
     }
+
     if (!password) {
       setError("Password is required");
       return;
     }
 
-    // Add any additional validation logic (e.g., email format, password strength)
-    Alert.alert("Login successful", `Welcome back, ${email}!`);
-    // Redirect or further login logic here
+    try {
+      setLoading(true);
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      Alert.alert("Login successful", `Welcome back, ${email}!`);
+      router.push("index");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRecoverPassword = () => {
@@ -56,6 +76,7 @@ const Login = () => {
               value={email}
               placeholder="example@gmail.com"
               onChangeText={setEmail}
+              autoCapitalize="none"
             />
             <Input
               iconName="lock"
@@ -69,7 +90,7 @@ const Login = () => {
           <TouchableOpacity onPress={handleRecoverPassword}>
             <Text style={styles.recoverText}>Forgot Password ?</Text>
           </TouchableOpacity>
-          <Button title="Login" onPress={handleLogin} />
+          <Button title="Login" onPress={handleLogin} loading={loading} />
           <View style={styles.signupContainer}>
             <Text style={styles.dontHave}>Don't have an account? </Text>
             <TouchableOpacity onPress={handleCreateAccount}>

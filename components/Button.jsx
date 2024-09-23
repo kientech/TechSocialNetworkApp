@@ -1,4 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import React from "react";
 import { theme } from "../constants/theme";
 import { hp } from "../helpers/common";
@@ -26,8 +32,13 @@ const Button = ({
     <Pressable
       onPress={onPress}
       style={[styles.button, buttonStyle, hasShadow && shadowStyle]}
+      disabled={loading}
     >
-      <Text style={[styles.text, textStyle]}>{title}</Text>
+      {loading ? (
+        <ActivityIndicator size="small" color={theme.colors.text} />
+      ) : (
+        <Text style={[styles.text, textStyle]}>{title}</Text>
+      )}
     </Pressable>
   );
 };

@@ -1,4 +1,11 @@
-import { StyleSheet, Text, View, Alert, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Alert,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import React, { useState } from "react";
 import ScreenWrapper from "../components/ScreenWrapper";
 import BackButton from "../components/BackButton";
@@ -15,20 +22,23 @@ const SignUp = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
     if (!name) {
-      setError("Name is required");
+      Alert.alert("Error", "Name is required");
       return;
     }
     if (!email) {
-      setError("Email is required");
+      Alert.alert("Error", "Email is required");
       return;
     }
     if (!password) {
-      setError("Password is required");
+      Alert.alert("Error", "Password is required");
       return;
     }
+
+    setLoading(true);
 
     const {
       data: { session },
@@ -37,17 +47,19 @@ const SignUp = () => {
       email: email,
       password: password,
     });
-    Alert.alert("Sign Up Successful");
-    router.push("login");
-  };
 
-  const handleRecoverPassword = () => {
-    Alert.alert("Recover Password", "Password recovery process initiated.");
-    // Redirect to password recovery page or process
+    setLoading(false);
+    if (error) {
+      Alert.alert("Error", error.message || "An error occurred during signup.");
+    } else {
+      Alert.alert("Success", "Sign Up Successfully", [
+        { text: "OK", onPress: () => router.push("login") },
+      ]);
+    }
   };
 
   const handleCreateAccount = () => {
-    router.push("login"); // Example of routing to register page
+    router.push("login");
   };
 
   return (
@@ -72,6 +84,7 @@ const SignUp = () => {
               value={email}
               placeholder="example@gmail.com"
               onChangeText={setEmail}
+              autoCapitalize="none"
             />
             <Input
               iconName="lock"
@@ -82,7 +95,12 @@ const SignUp = () => {
             />
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
           </View>
-          <Button title="Sign up" onPress={handleSignUp} />
+          {/* Display loading indicator when loading is true */}
+          {loading ? (
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          ) : (
+            <Button title="Sign up" onPress={handleSignUp} loading={loading} />
+          )}
           <View style={styles.signupContainer}>
             <Text style={styles.dontHave}>Alerady have an account? </Text>
             <TouchableOpacity onPress={handleCreateAccount}>
@@ -114,13 +132,6 @@ const styles = StyleSheet.create({
   errorText: {
     color: theme.colors.error,
     marginTop: 5,
-  },
-  recoverText: {
-    color: theme.colors.dark,
-    fontSize: wp(3.8),
-    textAlign: "right",
-    fontWeight: theme.fonts.semibold,
-    marginVertical: 10,
   },
   signupContainer: {
     flexDirection: "row",
