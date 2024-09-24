@@ -7,6 +7,7 @@ export const getUserData = async (userId) => {
       .select()
       .eq("id", userId)
       .single();
+    console.log("🚀 ~ getUserData ~ data:", data)
     if (error) {
       return {
         success: false,
@@ -18,7 +19,6 @@ export const getUserData = async (userId) => {
       data,
     };
   } catch (error) {
-    console.log("🚀 ~ getUserData ~ error:", error);
     return {
       success: false,
       message: error.message,
