@@ -173,10 +173,10 @@ const Profile = () => {
 
         {/* Avatar */}
         <Pressable onPress={pickImage} style={styles.avatarContainer}>
-          {avatar.startsWith("avatars") ? (
+          {avatar?.startsWith("avatars") ? (
             <Image
               source={{
-                uri: `https://jdnjdbiflwgamipkjewd.supabase.co/storage/v1/object/public/${user.image}`,
+                uri: `https://jdnjdbiflwgamipkjewd.supabase.co/storage/v1/object/public/${user?.image}`,
               }}
               style={styles.avatar}
             />
