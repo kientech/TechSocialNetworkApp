@@ -6,6 +6,8 @@ import {
   Text,
   View,
   FlatList,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import ScreenWrapper from "../../components/ScreenWrapper";
@@ -22,7 +24,8 @@ const Home = () => {
   const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState({});
-  console.log("🚀 ~ Home ~ users:", users);
+  const [loading, setLoading] = useState(true);
+  const [newComment, setNewComment] = useState("");
   const defaultImage = require("../../assets/images/defaultUser.png");
 
   const userImageUri = user?.image
@@ -33,6 +36,7 @@ const Home = () => {
 
   useEffect(() => {
     const fetchPosts = async () => {
+      setLoading(true);
       try {
         const { data, error } = await supabase.from("posts").select("*");
         if (error) throw error;
@@ -40,11 +44,14 @@ const Home = () => {
         await fetchUserDetails(data);
       } catch (error) {
         Alert.alert("Error fetching posts", error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     const fetchUserDetails = async (posts) => {
       const userIds = posts.map((post) => post.userId);
+      if (userIds.length === 0) return;
       const { data, error } = await supabase
         .from("users")
         .select("*")
@@ -55,7 +62,7 @@ const Home = () => {
       }
 
       const userMap = data.reduce((acc, user) => {
-        acc[user.id] = user; // Chuyển đổi thành đối tượng với id làm key
+        acc[user.id] = user;
         return acc;
       }, {});
 
@@ -64,6 +71,40 @@ const Home = () => {
 
     fetchPosts();
   }, []);
+
+  const handleLike = async (postId) => {
+    try {
+      const { error } = await supabase
+        .from("postLikes")
+        .insert([{ postId: postId, userId: user.id }]);
+      if (error) throw error;
+      Alert.alert("Liked!");
+    } catch (error) {
+      Alert.alert("Error liking post", error.message);
+    }
+  };
+
+  const handleComment = async (postId) => {
+    if (!newComment.trim()) return; // Ensure comment is not empty
+    try {
+      const { error } = await supabase
+        .from("comments")
+        .insert([{ postId: postId, userId: user.id, text: newComment }]);
+      if (error) throw error;
+      setNewComment(""); // Clear input
+      Alert.alert("Comment added!");
+    } catch (error) {
+      Alert.alert("Error adding comment", error.message);
+    }
+  };
+
+  if (loading) {
+    return (
+      <ScreenWrapper>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </ScreenWrapper>
+    );
+  }
 
   return (
     <ScreenWrapper>
@@ -83,16 +124,13 @@ const Home = () => {
                 style={styles.userImage}
                 resizeMethod="resize"
                 resizeMode="cover"
-                onLoadStart={() => console.log("Loading started")}
-                onLoadEnd={() => console.log("Loading finished")}
-                onError={() => console.log("Error loading image")}
               />
             </Pressable>
           </View>
         </View>
         <FlatList
           data={posts}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             const postUser = users[item.userId] || {};
             return (
@@ -123,6 +161,39 @@ const Home = () => {
                     resizeMode="cover"
                   />
                 )}
+                <View style={styles.reactContainer}>
+                  <Pressable
+                    style={styles.reactItem}
+                    onPress={() => handleLike(item.id)}
+                  >
+                    <Icon name="heart" />
+                    <Text style={{ fontSize: 16 }}>Like</Text>
+                  </Pressable>
+                  <Pressable style={styles.reactItem}>
+                    <Icon name="comment" />
+                    <Text style={{ fontSize: 16 }}>Comment</Text>
+                  </Pressable>
+                  <Pressable style={styles.reactItem}>
+                    <Icon name="share" />
+                    <Text style={{ fontSize: 16 }}>Share</Text>
+                  </Pressable>
+                </View>
+
+                {/* Comment Input */}
+                <View style={styles.commentSection}>
+                  <TextInput
+                    value={newComment}
+                    onChangeText={setNewComment}
+                    placeholder="Add a comment..."
+                    style={styles.commentInput}
+                  />
+                  <Pressable
+                    onPress={() => handleComment(item.id)}
+                    style={styles.commentButton}
+                  >
+                    <Text style={styles.commentButtonText}>Send</Text>
+                  </Pressable>
+                </View>
               </View>
             );
           }}
@@ -162,7 +233,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   postContainer: {
-    padding: 16,
+    padding: 12,
     borderBottomWidth: 1,
     borderColor: theme.colors.gray,
     borderWidth: 1,
@@ -178,7 +249,7 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: "100%",
-    height: 200,
+    height: 300,
     borderRadius: 12,
     marginTop: 10,
   },
@@ -190,15 +261,53 @@ const styles = StyleSheet.create({
   infomationUser: {
     display: "flex",
     flexDirection: "row",
-    gap: 10,
     alignItems: "center",
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 10,
   },
   timeAgo: {
-    color: theme.colors.text,
+    fontSize: 12,
+    color: theme.colors.gray,
   },
   bodyText: {
-    fontSize: wp(3.8),
-    fontWeight: theme.fonts.base,
+    marginTop: 10,
+    fontSize: 15,
+    lineHeight: 20,
+    color: theme.colors.text,
+  },
+  reactContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 10,
+  },
+  reactItem: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 5,
+    alignItems: "center",
+  },
+  commentSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  commentInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: theme.colors.gray,
+    borderRadius: 8,
+    padding: 10,
+    marginRight: 10,
+  },
+  commentButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
+  commentButtonText: {
+    color: "white",
   },
 });
