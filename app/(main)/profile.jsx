@@ -138,7 +138,7 @@ const Profile = () => {
       console.log("Update Error:", error);
     } else {
       Alert.alert("Success", "Profile updated successfully");
-      setUser({ ...user, name, address, bio, email, image: avatarUrl }); 
+      setUser({ ...user, name, address, bio, email, image: avatarUrl });
     }
   };
 
@@ -154,10 +154,10 @@ const Profile = () => {
       placeholder: "Email",
       value: email,
       setter: setEmail,
-      icon: "email",
+      icon: "mail",
       keyboardType: "email-address",
     },
-    { placeholder: "Bio", value: bio, setter: setBio },
+    { placeholder: "Bio", value: bio, icon: "home", setter: setBio },
   ];
 
   return (
@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: wp(7.8),
     fontWeight: "bold",
+    color: theme.colors.text,
   },
   logout: {
     padding: 5,
